@@ -18,8 +18,10 @@ app.get('/', (req, res) => {
     res.send('Blog App is running');
 })
 const BlogRouter = require('./routes/Blog.route');
+const userRoutes = require('./routes/User.route');
 
 app.use('/api/posts', BlogRouter);
+app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

@@ -1,21 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import {toast} from 'react-hot-toast';
+import AuthContext from '../context/AuthContext';
 
 const API_URL = 'http://localhost:5000/api/posts';
 
 const PostForm = ({ isEdit = false }) => {
-  const [post, setPost] = useState({ title: '', content: '', author: '' });
+  const [post, setPost] = useState({ title: '', content: ''});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { id } = useParams(); 
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!user) {
+        navigate('/login');
+    }
+  }, [user, navigate]);
+
+  const config = {
+      headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user?.token}`,
+      },
+  };
 
   useEffect(() => {
     if (isEdit && id) {
       axios.get(`${API_URL}/${id}`)
         .then(response => {
-          setPost(response.data);
+          setPost(response.data); 
           setLoading(false);
         })
         .catch(error => {
@@ -37,16 +52,16 @@ const PostForm = ({ isEdit = false }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     if (isEdit) {
-      axios.put(`${API_URL}/${id}`, post)
+      axios.put(`${API_URL}/${id}`, post, config)
         .then(() => {
           toast.success('Post updated successfully!');
           navigate(`/post/${id}`);
         })
         .catch(error => console.error('Error updating post:', error));
     } else {
-      axios.post(API_URL, post)
+      axios.post(API_URL, post, config)
         .then(() => {
           toast.success('Post created successfully!');
           navigate('/'); 
